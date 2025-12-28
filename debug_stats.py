@@ -1,0 +1,15 @@
+import pandas as pd
+print("Loading data...")
+ratings = pd.read_csv('ratings.csv')
+print(f"Ratings: {ratings.shape}")
+user_counts = ratings['user_id'].value_counts()
+print("\nUser Ratings Statistics:")
+print(user_counts.describe())
+print(f"\nUsers with > 200 ratings: {(user_counts > 200).sum()}")
+print(f"Users with > 100 ratings: {(user_counts > 100).sum()}")
+print(f"Users with > 50 ratings: {(user_counts > 50).sum()}")
+
+book_counts = ratings['book_id'].value_counts()
+print("\nBook Ratings Statistics:")
+print(book_counts.describe())
+print(f"\nBooks with > 50 ratings: {(book_counts > 50).sum()}")
