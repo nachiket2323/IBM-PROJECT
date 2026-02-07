@@ -47,35 +47,40 @@ def book_tile(column, book, show_rating=False):
         show_rating: Whether to show rating
     """
     with column:
-        # Book image
+        # Container for consistent card height
+        st.markdown('<div class="book-card">', unsafe_allow_html=True)
+        
+        # Book image with fixed aspect ratio container
         image_url = book.get('image_url_m', book.get('image_url_l', ''))
         if image_url and pd.notna(image_url):
             try:
-                st.image(image_url, width=150)
+                # Use markdown to ensure consistent image sizing
+                st.markdown(
+                    f'<div class="book-image-container"><img src="{image_url}" class="book-cover"/></div>',
+                    unsafe_allow_html=True
+                )
             except:
-                st.image("https://via.placeholder.com/150x200?text=No+Cover", 
-                        use_container_width=True)
+                st.image("https://via.placeholder.com/150x200?text=No+Cover", width=150)
         else:
-            st.image("https://via.placeholder.com/150x200?text=No+Cover", 
-                    use_container_width=True)
+            st.image("https://via.placeholder.com/150x200?text=No+Cover", width=150)
         
-        # Book title (truncated)
+        # Book title (fixed height container)
         title = book.get('title', 'Unknown Title')
-        if len(str(title)) > 40:
-            title = str(title)[:37] + "..."
-        st.caption(f"**{title}**")
+        if len(str(title)) > 45:
+            title = str(title)[:42] + "..."
+        st.markdown(f'<div class="book-title">{title}</div>', unsafe_allow_html=True)
         
-        # Author
+        # Author (fixed height container)
         author = book.get('author', 'Unknown Author')
-        if len(str(author)) > 30:
-            author = str(author)[:27] + "..."
-        st.caption(f"_{author}_")
+        if len(str(author)) > 35:
+            author = str(author)[:32] + "..."
+        st.markdown(f'<div class="book-author">{author}</div>', unsafe_allow_html=True)
         
         # Rating badge
         if show_rating:
             rating = book.get('avg_rating', book.get('rating', 0))
             if rating and pd.notna(rating):
-                st.caption(f"⭐ {float(rating):.1f}")
+                st.markdown(f'<div class="book-rating">⭐ {float(rating):.1f}</div>', unsafe_allow_html=True)
         
         # Select button
         book_id = book.get('book_id', '')
@@ -87,6 +92,8 @@ def book_tile(column, book, show_rating=False):
                 args=(book_id,),
                 use_container_width=True
             )
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 def book_grid(df, title="", n_cols=5, show_rating=True):
@@ -337,7 +344,81 @@ def apply_custom_css():
         padding-bottom: 0.5rem;
     }
     
-    /* Book tile styling */
+    /* Book Card Container - Fixed height for alignment */
+    .book-card {
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        min-height: 420px;
+    }
+    
+    .book-card:hover {
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+        transform: translateY(-4px);
+    }
+    
+    /* Book Image Container - Fixed aspect ratio */
+    .book-image-container {
+        width: 100%;
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #F3F4F6;
+    }
+    
+    .book-cover {
+        max-width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Book Title - Fixed height */
+    .book-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        line-height: 1.3;
+        color: #1F2937;
+        margin-bottom: 0.5rem;
+        height: 2.6rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    /* Book Author - Fixed height */
+    .book-author {
+        font-style: italic;
+        font-size: 0.85rem;
+        color: #6B7280;
+        margin-bottom: 0.5rem;
+        height: 1.2rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* Book Rating */
+    .book-rating {
+        font-size: 0.85rem;
+        color: #F59E0B;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Image styling (fallback for st.image) */
     .stImage {
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -345,7 +426,7 @@ def apply_custom_css():
     }
     
     .stImage:hover {
-        transform: scale(1.05);
+        transform: scale(1.02);
     }
     
     /* Button styling */
@@ -356,6 +437,7 @@ def apply_custom_css():
         border-radius: 20px;
         font-weight: 600;
         transition: all 0.3s;
+        padding: 0.5rem 1rem;
     }
     
     .stButton button:hover {
@@ -379,6 +461,16 @@ def apply_custom_css():
     .stCaption {
         font-size: 0.85rem;
         line-height: 1.4;
+    }
+    
+    /* Column gap fix for better grid alignment */
+    [data-testid="column"] {
+        padding: 0 0.5rem;
+    }
+    
+    /* Ensure columns have equal width */
+    [data-testid="column"] > div {
+        width: 100%;
     }
     </style>
     """, unsafe_allow_html=True)
