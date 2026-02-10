@@ -39,7 +39,7 @@ def add_friend(friend_id):
 
 def book_tile(column, book, show_rating=False):
     """
-    Display a single book tile.
+    Display a single clickable book tile that opens in a new tab.
     
     Args:
         column: Streamlit column to render in
@@ -47,53 +47,45 @@ def book_tile(column, book, show_rating=False):
         show_rating: Whether to show rating
     """
     with column:
-        # Container for consistent card height
-        st.markdown('<div class="book-card">', unsafe_allow_html=True)
+        book_id = book.get('book_id', '')
         
-        # Book image with fixed aspect ratio container
+        # Get book data
         image_url = book.get('image_url_m', book.get('image_url_l', ''))
-        if image_url and pd.notna(image_url):
-            try:
-                # Use markdown to ensure consistent image sizing
-                st.markdown(
-                    f'<div class="book-image-container"><img src="{image_url}" class="book-cover"/></div>',
-                    unsafe_allow_html=True
-                )
-            except:
-                st.image("https://via.placeholder.com/150x200?text=No+Cover", width=150)
-        else:
-            st.image("https://via.placeholder.com/150x200?text=No+Cover", width=150)
+        if not image_url or pd.isna(image_url):
+            image_url = "https://via.placeholder.com/150x200?text=No+Cover"
         
-        # Book title (fixed height container)
         title = book.get('title', 'Unknown Title')
         if len(str(title)) > 45:
-            title = str(title)[:42] + "..."
-        st.markdown(f'<div class="book-title">{title}</div>', unsafe_allow_html=True)
+            title_display = str(title)[:42] + "..."
+        else:
+            title_display = str(title)
         
-        # Author (fixed height container)
         author = book.get('author', 'Unknown Author')
         if len(str(author)) > 35:
-            author = str(author)[:32] + "..."
-        st.markdown(f'<div class="book-author">{author}</div>', unsafe_allow_html=True)
+            author_display = str(author)[:32] + "..."
+        else:
+            author_display = str(author)
         
-        # Rating badge
+        # Build rating
+        rating_html = ""
         if show_rating:
             rating = book.get('avg_rating', book.get('rating', 0))
             if rating and pd.notna(rating):
-                st.markdown(f'<div class="book-rating">⭐ {float(rating):.1f}</div>', unsafe_allow_html=True)
+                rating_html = f'<div class="book-rating">⭐ {float(rating):.1f}</div>'
         
-        # Select button
-        book_id = book.get('book_id', '')
+        # Create clickable card that opens in new tab
         if book_id:
-            st.button(
-                "📖 View", 
-                key=f"view_{book_id}_{random.random()}", 
-                on_click=select_book, 
-                args=(book_id,),
-                use_container_width=True
-            )
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+            # Create URL with book_id parameter
+            book_url = f"?book_id={book_id}"
+            
+            # Build HTML without indentation to prevent markdown interpretation
+            card_html = f'<a href="{book_url}" target="_blank" class="book-link" style="text-decoration: none;"><div class="book-card-clickable"><div class="book-image-container"><img src="{image_url}" class="book-cover" alt="{title_display}"/></div><div class="book-title">{title_display}</div><div class="book-author">{author_display}</div>{rating_html}</div></a>'
+            
+            st.markdown(card_html, unsafe_allow_html=True)
+        else:
+            # Non-clickable card (no book_id)
+            card_html = f'<div class="book-card"><div class="book-image-container"><img src="{image_url}" class="book-cover" alt="{title_display}"/></div><div class="book-title">{title_display}</div><div class="book-author">{author_display}</div>{rating_html}</div>'
+            st.markdown(card_html, unsafe_allow_html=True)
 
 
 def book_grid(df, title="", n_cols=5, show_rating=True):
@@ -344,7 +336,7 @@ def apply_custom_css():
         padding-bottom: 0.5rem;
     }
     
-    /* Book Card Container - Fixed height for alignment */
+    /* Book Card - Default (non-clickable) */
     .book-card {
         background: #FFFFFF;
         border-radius: 12px;
@@ -358,9 +350,60 @@ def apply_custom_css():
         min-height: 420px;
     }
     
+    /* Clickable book card */
+    .book-card-clickable {
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        min-height: 380px;
+        cursor: pointer !important;
+    }
+    
+    .book-card-clickable:hover {
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+        transform: translateY(-4px);
+    }
+    
+    /* Book Link - Remove default link styling */
+    .book-link {
+        text-decoration: none !important;
+        color: inherit !important;
+        display: block;
+    }
+    
+    .book-link:hover {
+        text-decoration: none !important;
+        color: inherit !important;
+    }
+    
+    .book-link:visited {
+        color: inherit !important;
+    }
+    
+    .book-link:active {
+        color: inherit !important;
+    }
+    
     .book-card:hover {
         box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
         transform: translateY(-4px);
+    }
+    
+    /* Hide empty book cards - FIX for blank white spaces */
+    .book-card:empty {
+        display: none !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Also hide columns that only contain empty divs */
+    [data-testid="column"]:has(.book-card:empty):has(:only-child) {
+        display: none !important;
     }
     
     /* Book Image Container - Fixed aspect ratio */
@@ -376,12 +419,32 @@ def apply_custom_css():
         background: #F3F4F6;
     }
     
+    /* Clickable book cover */
+    .book-image-container.clickable {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .book-image-container.clickable:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    }
+    
+    .book-image-container.clickable:active {
+        transform: scale(0.98);
+    }
+    
     .book-cover {
         max-width: 100%;
         max-height: 200px;
         object-fit: contain;
         border-radius: 8px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .book-image-container.clickable .book-cover:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     
     /* Book Title - Fixed height */
@@ -418,6 +481,60 @@ def apply_custom_css():
         margin-bottom: 0.75rem;
     }
     
+    /* DARK MODE SUPPORT */
+    @media (prefers-color-scheme: dark) {
+        /* Make text white in dark mode */
+        .book-title {
+            color: #F9FAFB !important;
+        }
+        
+        .book-author {
+            color: #D1D5DB !important;
+        }
+        
+        h1, h2, h3 {
+            color: #93C5FD !important;
+        }
+        
+        .stMarkdown, p, div {
+            color: #E5E7EB !important;
+        }
+        
+        /* Adjust card background for dark mode */
+        .book-card, .book-card-clickable {
+            background: rgba(31, 41, 55, 0.5) !important;
+            border: 1px solid #374151 !important;
+        }
+    }
+    
+    /* Force white text when Streamlit is in dark mode */
+    [data-theme="dark"] .book-title,
+    .stApp[data-theme="dark"] .book-title {
+        color: #F9FAFB !important;
+    }
+    
+    [data-theme="dark"] .book-author,
+    .stApp[data-theme="dark"] .book-author {
+        color: #D1D5DB !important;
+    }
+    
+    [data-theme="dark"] h1,
+    [data-theme="dark"] h2,
+    [data-theme="dark"] h3,
+    .stApp[data-theme="dark"] h1,
+    .stApp[data-theme="dark"] h2,
+    .stApp[data-theme="dark"] h3 {
+        color: #93C5FD !important;
+    }
+    
+    [data-theme="dark"] .book-card,
+    [data-theme="dark"] .book-card-clickable,
+    .stApp[data-theme="dark"] .book-card,
+    .stApp[data-theme="dark"] .book-card-clickable {
+        background: rgba(31, 41, 55, 0.5) !important;
+        border: 1px solid #374151 !important;
+    }
+    
     /* Image styling (fallback for st.image) */
     .stImage {
         border-radius: 8px;
@@ -429,7 +546,7 @@ def apply_custom_css():
         transform: scale(1.02);
     }
     
-    /* Button styling */
+    /* Button styling - HIDE since we removed View buttons */
     .stButton button {
         background: linear-gradient(90deg, #3B82F6, #8B5CF6);
         color: white;

@@ -75,6 +75,17 @@ def init_session_state(ratings_df):
     
     if 'selected_genres' not in st.session_state:
         st.session_state['selected_genres'] = []
+    
+    # Check for book_id in query parameters (for opening in new tab)
+    query_params = st.query_params
+    if 'book_id' in query_params:
+        book_id_from_url = query_params['book_id']
+        # Only set if not already set to avoid loops
+        if st.session_state.get('selected_book_id') != book_id_from_url:
+            try:
+                st.session_state['selected_book_id'] = int(book_id_from_url)
+            except (ValueError, TypeError):
+                st.session_state['selected_book_id'] = book_id_from_url
 
 
 def render_header():

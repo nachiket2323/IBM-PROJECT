@@ -281,14 +281,27 @@ class ContentBasedRecommender:
         if self.books_df is None:
             return pd.DataFrame()
         
+        # Ensure required columns exist
+        required_cols = ['clean_title', 'clean_author']
+        missing = [c for c in required_cols if c not in self.books_df.columns]
+        if missing:
+            print(f"Warning: Missing search columns {missing}")
+            # Try to recover or return empty
+            return pd.DataFrame()
+
         query_lower = query.lower()
         
-        matches = self.books_df[
-            (self.books_df['clean_title'].str.contains(query_lower, na=False)) |
-            (self.books_df['clean_author'].str.contains(query_lower, na=False))
-        ]
+        # Use regex=False to treat query as literal string, preventing errors with special chars like '['
+        try:
+            matches = self.books_df[
+                (self.books_df['clean_title'].str.contains(query_lower, na=False, regex=False)) |
+                (self.books_df['clean_author'].str.contains(query_lower, na=False, regex=False))
+            ]
+        except Exception as e:
+            print(f"Search error: {e}")
+            return pd.DataFrame()
         
-        result_cols = ['book_id', 'title', 'author', 'year', 'publisher', 'image_url_m']
+        result_cols = ['book_id', 'title', 'author', 'year', 'publisher', 'image_url_m', 'image_url_l']
         available_cols = [c for c in result_cols if c in matches.columns]
         
         return matches.head(n)[available_cols]
