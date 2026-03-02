@@ -1,0 +1,14 @@
+<a href="/book/{{ book.book_id }}" class="book-card">
+    <img class="book-card__img"
+        src="{{ book.image_url_m or book.image_url_l or 'https://via.placeholder.com/180x240?text=No+Cover' }}"
+        alt="{{ book.title }}" loading="lazy" onerror="this.src='https://via.placeholder.com/180x240?text=No+Cover'">
+    <div class="book-card__body">
+        <div class="book-card__title">{{ book.title[:50] }}{% if book.title|length > 50 %}…{% endif %}</div>
+        <div class="book-card__author">{{ book.author[:35] }}{% if book.author|length > 35 %}…{% endif %}</div>
+        {% if book.avg_rating is defined and book.avg_rating %}
+        <div class="book-card__rating">⭐ {{ "%.1f"|format(book.avg_rating) }}</div>
+        {% elif book.rating is defined and book.rating %}
+        <div class="book-card__rating">⭐ {{ "%.1f"|format(book.rating) }}</div>
+        {% endif %}
+    </div>
+</a>

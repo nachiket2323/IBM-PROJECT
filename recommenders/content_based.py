@@ -200,7 +200,7 @@ class ContentBasedRecommender:
         similar_books = self.books_df.iloc[similar_indices].copy()
         similar_books['similarity_score'] = similarity_scores[similar_indices]
         
-        result_cols = ['book_id', 'title', 'author', 'similarity_score', 'image_url_m']
+        result_cols = ['book_id', 'title', 'author', 'similarity_score', 'image_url_m', 'avg_rating']
         available_cols = [c for c in result_cols if c in similar_books.columns]
         
         return similar_books[available_cols]
@@ -262,7 +262,7 @@ class ContentBasedRecommender:
         if exclude_book_id:
             publisher_books = publisher_books[publisher_books['book_id'] != exclude_book_id]
         
-        result_cols = ['book_id', 'title', 'author', 'publisher', 'year', 'image_url_m']
+        result_cols = ['book_id', 'title', 'author', 'publisher', 'year', 'image_url_m', 'avg_rating']
         available_cols = [c for c in result_cols if c in publisher_books.columns]
         
         return publisher_books.head(n)[available_cols]
@@ -301,7 +301,7 @@ class ContentBasedRecommender:
             print(f"Search error: {e}")
             return pd.DataFrame()
         
-        result_cols = ['book_id', 'title', 'author', 'year', 'publisher', 'image_url_m', 'image_url_l']
+        result_cols = ['book_id', 'title', 'author', 'year', 'publisher', 'image_url_m', 'image_url_l', 'avg_rating']
         available_cols = [c for c in result_cols if c in matches.columns]
         
         return matches.head(n)[available_cols]

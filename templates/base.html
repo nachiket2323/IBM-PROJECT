@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Book Recommendation System — Personalized book suggestions using collaborative, content-based, and hybrid filtering.">
+  <title>{% block title %}📚 Book Recommender{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- ======== Navbar ======== -->
+  <nav class="navbar">
+    <a href="/" class="navbar__brand">📚 Book Recommender</a>
+
+    <div class="navbar__search">
+      <form action="/search" method="get" id="search-form">
+        <input type="text" name="q" placeholder="Search by title or author…"
+               value="{{ request.args.get('q', '') }}">
+        <button type="submit">🔍</button>
+      </form>
+    </div>
+
+    <div class="navbar__actions">
+      {% if session.get('user_id') %}
+        <span class="navbar__user">👤 User {{ session['user_id'] }}</span>
+        <a href="/logout" class="btn btn--outline btn--small">Log Out</a>
+      {% else %}
+        <form action="/login" method="post" style="display:flex;gap:.4rem;align-items:center;">
+          <input type="number" name="user_id" placeholder="User ID"
+                 style="width:100px;padding:.35rem .5rem;border:none;border-radius:var(--radius-pill);font-size:.85rem;">
+          <button type="submit" class="btn btn--primary btn--small">Log In</button>
+        </form>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ======== Flash Messages ======== -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-messages">
+    {% for category, msg in messages %}
+      <div class="alert alert--{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <!-- ======== Layout ======== -->
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- User Info -->
+      {% if session.get('user_id') %}
+      <div class="sidebar__section">
+        <div class="sidebar__title">👤 Logged In</div>
+        <p style="font-size:.9rem;font-weight:600;">User {{ session['user_id'] }}</p>
+        <p style="font-size:.82rem;color:var(--color-text-muted);">{{ user_rated_count }} books rated</p>
+      </div>
+      <hr>
+      {% endif %}
+
+      <!-- Friends -->
+      <div class="sidebar__section">
+        <div class="sidebar__title">👥 Friends</div>
+        {% set friends = session.get('friends', []) %}
+        {% if friends %}
+          <ul class="friend-list">
+            {% for f in friends[:6] %}
+              <li>• User {{ f }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p style="font-size:.85rem;color:var(--color-text-muted);">No friends yet.</p>
+        {% endif %}
+        <form onsubmit="addFriend(event)" style="margin-top:.5rem;">
+          <input type="number" name="friend_id" placeholder="Friend's User ID">
+          <button type="submit" class="btn btn--primary btn--small">Add</button>
+        </form>
+      </div>
+      <hr>
+
+      <!-- Stats -->
+      <div class="sidebar__section">
+        <div class="sidebar__title">📊 Stats</div>
+        <div class="sidebar__stat"><span>Books</span><span class="sidebar__stat-value">{{ stats.books }}</span></div>
+        <div class="sidebar__stat"><span>Ratings</span><span class="sidebar__stat-value">{{ stats.ratings }}</span></div>
+        <div class="sidebar__stat"><span>Users</span><span class="sidebar__stat-value">{{ stats.users }}</span></div>
+      </div>
+      <hr>
+
+      <!-- About -->
+      <div class="sidebar__section">
+        <div class="sidebar__title">ℹ️ About</div>
+        <p style="font-size:.82rem;color:var(--color-text-muted);line-height:1.5;">
+          Hybrid recommender combining popularity, content-based, collaborative filtering, and friend-based suggestions.
+        </p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

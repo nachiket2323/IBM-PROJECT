@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Search: {{ query }} — Book Recommender{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🔍 Search Results</h1>
+    <p>Results for "<strong>{{ query }}</strong>"</p>
+</div>
+
+{% if books|length > 0 %}
+<div class="book-grid">
+    {% for book in books %}
+    {% include "partials/book_card.html" %}
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state__icon">🔍</div>
+    <div class="empty-state__text">No results found for "{{ query }}"</div>
+</div>
+{% endif %}
+{% endblock %}

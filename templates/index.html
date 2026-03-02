@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📚 Enhanced Book Recommender</h1>
+    <p>Personalized picks from collaborative filtering, content-based, and popularity-based approaches.</p>
+</div>
+
+{% if session.get('user_id') %}
+<!-- ======== Tabs ======== -->
+<div class="tabs">
+    <button class="tab-btn" data-tab="foryou">🔥 For You</button>
+    <button class="tab-btn" data-tab="popular">📊 Popular</button>
+    <button class="tab-btn" data-tab="author">📖 By Author</button>
+    <button class="tab-btn" data-tab="friends">👥 Friends Reading</button>
+    <button class="tab-btn" data-tab="personalized">🎯 Personalized</button>
+</div>
+
+<!-- For You -->
+<div class="tab-panel" id="tab-foryou" data-url="/api/recommendations/foryou">
+</div>
+
+<!-- Popular -->
+<div class="tab-panel" id="tab-popular" data-url="/api/recommendations/popular">
+</div>
+
+<!-- By Author -->
+<div class="tab-panel" id="tab-author" data-url="/api/recommendations/author">
+</div>
+
+<!-- Friends Reading -->
+<div class="tab-panel" id="tab-friends" data-url="/api/recommendations/friends">
+</div>
+
+<!-- Personalized -->
+<div class="tab-panel" id="tab-personalized" data-url="/api/recommendations/personalized">
+</div>
+
+{% else %}
+<!-- Not logged in — show popular books -->
+<div class="alert alert--info">👆 Log in with a User ID to get personalized recommendations!</div>
+
+<h2 class="section-header">📊 Popular Books</h2>
+<div class="book-grid">
+    {% for book in popular_books %}
+    {% include "partials/book_card.html" %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
