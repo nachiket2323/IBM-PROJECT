@@ -68,5 +68,4 @@ Enhanced from:
 | Modern UI | Multi-tab Streamlit interface with book covers |
 
 ## 📄 License
-
 MIT License - See source repositories for their respective licenses.
